@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(dir \"C:\\development\\cdc\\uw-hub\\uw-hub-poc\")",
+      "Bash(find:*)",
+      "WebFetch(domain:wiki.postgresql.org)",
+      "WebSearch",
+      "WebFetch(domain:medium.com)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,364 @@
+# Spring Kafka Configuration for High-Throughput Consumer (1000 msg/sec)
+# Source: KAFKA_CONSUMER_RESEARCH.md
+# Date: 2025-11-02
+#
+# Usage: Include this in application.yml or override per-environment
+#
+# Environment Variables (optional overrides):
+#   - KAFKA_BOOTSTRAP_SERVERS (default: localhost:9092)
+#   - KAFKA_CONSUMER_GROUP (default: uw-hub-streaming-group)
+#   - KAFKA_CONSUMER_CONCURRENCY (default: 8)
+#   - KAFKA_TOPICS (default: topic1,topic2)
+
+spring:
+  kafka:
+    # Broker connectivity
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    client-id: ${spring.application.name}-${server.port:8080}
+
+    # ==================== CONSUMER CONFIGURATION ====================
+    consumer:
+      # Consumer group and identity
+      group-id: ${KAFKA_CONSUMER_GROUP:uw-hub-streaming-group}
+      client-id: ${spring.application.name}-consumer
+
+      # -------- CRITICAL: Offset Management (Zero Message Loss) --------
+      # DO NOT set to 'true' - manually commit after DB insert
+      enable-auto-commit: false
+
+      # Resume from beginning if no committed offset exists
+      # Use 'latest' only if you want to skip existing messages
+      auto-offset-reset: earliest
+
+      # Only consume messages that are fully replicated
+      # Requires producer acks=all
+      isolation-level: read_committed
+
+      # -------- BATCH SETTINGS (1000 msg/sec optimization) --------
+      # Number of messages to fetch in a single poll
+      # Default: 500 (good for 1000 msg/sec)
+      # Increase to 1000 for higher throughput (uses more memory)
+      # Decrease to 100 for lower latency requirements
+      max-poll-records: 500
+
+      # Maximum bytes to fetch in a single request (50MB)
+      # Increase for higher throughput, decrease for lower latency
+      fetch-max-bytes: 52428800  # 50MB
+
+      # Minimum bytes to accumulate before responding to fetch request (10MB)
+      # Increase to 50MB+ for higher throughput
+      # Decrease to 1MB for lower latency
+      fetch-min-bytes: 10485760  # 10MB
+
+      # Maximum time to wait for fetch request to be fulfilled (500ms)
+      # Increase to 1000ms+ for higher throughput (more batching)
+      # Decrease to 100ms for lower latency
+      fetch-max-wait-ms: 500
+
+      # -------- SESSION & REBALANCING --------
+      # Consumer must heartbeat within this interval or considered dead (30s)
+      # Increase for unstable networks, decrease for faster failure detection
+      session-timeout-ms: 30000
+
+      # Interval between heartbeats (1/3 of session timeout)
+      # Must be less than session-timeout-ms / 2
+      heartbeat-interval-ms: 10000
+
+      # Maximum time to process poll before next poll required (5 minutes)
+      # Increase if batch processing takes >5 minutes (rare)
+      max-poll-interval-ms: 300000
+
+      # Time to wait for new members joining group (1 minute)
+      # Increase if rebalancing is happening too frequently
+      rebalance-timeout-ms: 60000
+
+      # Partition assignment strategy (RoundRobin for fair distribution)
+      # Options: RoundRobinAssignor, RangeAssignor, CooperativeStickyAssignor
+      partition-assignment-strategy: org.apache.kafka.clients.consumer.RoundRobinAssignor
+
+      # -------- SERIALIZATION --------
+      # Key deserializer (string keys are common)
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      # Value deserializer (JSON format expected)
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      # JSON deserializer properties
+      properties:
+        # Trusted packages for JSON deserialization
+        spring.json.trusted.packages: "com.uwhub.domain.event,com.uwhub.application.dto"
+
+        # Don't require type headers in JSON (false = assume class from config)
+        spring.json.use.type.headers: false
+
+        # For untyped JSON, use Object as fallback
+        spring.json.default.type: java.util.LinkedHashMap
+
+      # -------- OPTIONAL: ADVANCED TUNING --------
+      # Delay between connection attempts (100ms)
+      # reconnect-backoff-ms: 100
+
+      # Maximum delay between connection attempts (1000ms)
+      # reconnect-backoff-max-ms: 1000
+
+      # Interval for checking connections (300s)
+      # connections-max-idle-ms: 540000
+
+      # Retry backoff interval (100ms)
+      # retry-backoff-ms: 100
+
+      # Number of retries for failed requests (3)
+      # retries: 2147483647
+
+    # ==================== LISTENER CONFIGURATION ====================
+    listener:
+      # Type of listener: 'batch' for high throughput, 'single' for low throughput
+      # MUST be 'batch' for 1000 msg/sec
+      type: batch
+
+      # Number of concurrent message listener containers
+      # Higher = more throughput but higher memory usage
+      # Rule of thumb: 1 thread per 125 msg/sec (8 threads = 1000 msg/sec)
+      # Can override via environment: KAFKA_CONSUMER_CONCURRENCY=8
+      concurrency: ${KAFKA_CONSUMER_CONCURRENCY:8}
+
+      # Maximum time to wait for poll result (3 seconds)
+      # Increase for slower systems, decrease for faster response
+      poll-timeout: 3000
+
+      # Interval to emit idle events (no messages received) (30 seconds)
+      # Used for monitoring, metrics collection
+      idle-event-interval: 30000
+
+      # Acknowledgment mode: MANUAL for reliability
+      # Options: AUTO, MANUAL, MANUAL_IMMEDIATE
+      # - AUTO: automatically ack after listener returns (risky)
+      # - MANUAL: explicitly ack after processing (safest)
+      # - MANUAL_IMMEDIATE: ack immediately after poll (balanced)
+      ack-mode: manual
+
+      # For MANUAL_IMMEDIATE mode: how many records processed before auto-ack
+      # Ignored if ack-mode is MANUAL
+      # no-poll-record-max-poll-records: 10
+
+      # Platform transaction manager (for transactional listeners)
+      # platform-transaction-manager: null
+
+      # Batch error handler class (optional, see CommonErrorHandler bean)
+      # error-handler: null
+
+    # ==================== PRODUCER CONFIGURATION (For DLQ) ====================
+    producer:
+      # Acknowledgment level: all = all replicas must ack
+      # Options: 0 (none), 1 (leader), all (all replicas)
+      # Use 'all' for critical messages (like DLQ)
+      acks: all
+
+      # Number of retries on error (3)
+      retries: 3
+
+      # Batch size for compression (32KB)
+      batch-size: 32768
+
+      # Time to wait for batching (10ms)
+      # Higher value = better compression but more latency
+      linger-ms: 10
+
+      # Compression type: snappy, gzip, lz4, zstd
+      # 'snappy' is good balance of speed/compression
+      compression-type: snappy
+
+      # Key serializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+      # Value serializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      # Optional properties
+      properties:
+        # Maximum in-flight requests (5)
+        max.in.flight.requests.per.connection: 5
+
+        # Idempotent producer (prevents duplicates)
+        enable.idempotence: false  # Not needed with manual commit + upsert
+
+    # ==================== ADMIN CONFIGURATION ====================
+    admin:
+      # Properties for KafkaAdmin (topic creation, etc)
+      properties:
+        # Timeout for admin operations (30s)
+        timeout.ms: 30000
+
+    # ==================== JAAS & SECURITY (Optional) ====================
+    # Uncomment if using SASL/SCRAM authentication
+    # jaas:
+    #   enabled: true
+    #   login-module: org.apache.kafka.common.security.scram.ScramLoginModule
+    #   control-flag: REQUIRED
+    #   options:
+    #     username: ${KAFKA_USERNAME}
+    #     password: ${KAFKA_PASSWORD}
+
+    # properties:
+    #   security.protocol: SASL_SSL
+    #   sasl.mechanism: SCRAM-SHA-512
+    #   sasl.jaas.config: |
+    #     org.apache.kafka.common.security.scram.ScramLoginModule required
+    #       username="${KAFKA_USERNAME}"
+    #       password="${KAFKA_PASSWORD}";
+
+# ==================== ACTUATOR (MONITORING) ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+
+  # Health indicators to show
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+
+  # Health group: liveness (K8s liveness probe)
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+    kafka:
+      enabled: true
+    diskspace:
+      threshold: 10GB
+
+  # Metrics configuration
+  metrics:
+    # Global tags
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:development}
+      pod-name: ${HOSTNAME:local}
+
+    # Kafka-specific metrics
+    kafka:
+      enabled: true
+
+    # Distribution
+    distribution:
+      percentiles-histogram:
+        kafka.batch.processing.time: true
+        http.server.requests: true
+
+  # Prometheus endpoint
+  prometheus:
+    enabled: true
+    metrics:
+      export:
+        enabled: true
+        step: 1m
+
+# ==================== LOGGING ====================
+logging:
+  level:
+    root: INFO
+
+    # Spring Kafka debug logging (verbose)
+    org.springframework.kafka: WARN  # Change to DEBUG for troubleshooting
+    org.apache.kafka: WARN
+
+    # Application logging
+    com.uwhub: INFO
+    com.uwhub.infrastructure.kafka: DEBUG  # Kafka consumer logs
+
+  pattern:
+    # Structured JSON logging for production
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+  file:
+    name: logs/uw-hub-streaming.log
+    max-size: 10MB
+    max-history: 10
+
+# ==================== APPLICATION ====================
+spring:
+  application:
+    name: uw-hub-streaming-service
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Don't auto-create schema in production
+
+    properties:
+      hibernate:
+        # Batch inserts (important for throughput)
+        jdbc:
+          batch_size: 50
+          fetch_size: 100
+          batch_versioned_data: true
+
+        # Connection pooling
+        hikari:
+          maximum-pool-size: 20
+          minimum-idle: 5
+          connection-timeout: 20000
+          idle-timeout: 300000
+          max-lifetime: 1200000
+
+  # Database (PostgreSQL)
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/uwhub}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+    # Connection pooling
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+# ==================== SERVER ====================
+server:
+  port: 8080
+  shutdown: graceful
+  servlet:
+    context-path: /api
+
+  # Tomcat tuning
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    max-connections: 10000
+    accept-count: 100
+
+# ==================== ENVIRONMENT-SPECIFIC OVERRIDES ====================
+# Add to separate profiles: application-dev.yml, application-prod.yml
+
+# Example development profile (application-dev.yml):
+# spring:
+#   kafka:
+#     bootstrap-servers: localhost:9092
+#   datasource:
+#     url: jdbc:postgresql://localhost:5432/uwhub_dev
+#   jpa.hibernate.ddl-auto: update
+
+# Example production profile (application-prod.yml):
+# spring:
+#   kafka:
+#     bootstrap-servers: ${KAFKA_BROKERS}
+#     consumer:
+#       group-id: uw-hub-streaming-group-prod
+#     listener:
+#       concurrency: 16  # More threads in production
+#   datasource:
+#     url: ${RDS_CONNECTION_URL}
+#     hikari:
+#       maximum-pool-size: 30  # Larger pool in production
+# logging:
+#   level:
+#     org.springframework.kafka: WARN
