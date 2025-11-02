@@ -50,46 +50,46 @@ description: "Task list for Kafka Streaming UI implementation with Debezium CDC 
 
 ### Backend Foundation - Domain Layer
 
-- [ ] T009 Create domain value object TableInfo in backend/src/main/java/domain/valueobject/TableInfo.java (database, schema, table)
-- [ ] T010 Create domain value object Position in backend/src/main/java/domain/valueobject/Position.java (sourcePartition, offset with lsn/txId/timestamp)
-- [ ] T011 Create domain value object Metadata in backend/src/main/java/domain/valueobject/Metadata.java (schemaVersion, connector, source, version)
-- [ ] T012 Create domain entity CdcMessage in backend/src/main/java/domain/entity/CdcMessage.java (id, topic, tableInfo, operation, timestamp, position, beforeData, afterData, metadata)
-- [ ] T013 Create domain repository interface CdcMessageRepository in backend/src/main/java/domain/repository/CdcMessageRepository.java (save, findAll with pagination, findByTopic, findByOperation, findByTable)
+- [X] T009 Create domain value object TableInfo in backend/src/main/java/domain/valueobject/TableInfo.java (database, schema, table)
+- [X] T010 Create domain value object Position in backend/src/main/java/domain/valueobject/Position.java (sourcePartition, offset with lsn/txId/timestamp)
+- [X] T011 Create domain value object Metadata in backend/src/main/java/domain/valueobject/Metadata.java (schemaVersion, connector, source, version)
+- [X] T012 Create domain entity CdcMessage in backend/src/main/java/domain/entity/CdcMessage.java (id, topic, tableInfo, operation, timestamp, position, beforeData, afterData, metadata)
+- [X] T013 Create domain repository interface CdcMessageRepository in backend/src/main/java/domain/repository/CdcMessageRepository.java (save, findAll with pagination, findByTopic, findByOperation, findByTable)
 
 ### Backend Foundation - Infrastructure Layer
 
-- [ ] T014 Implement PostgreSQL schema migration in backend/src/main/resources/db/migration/V1__create_cdc_messages_table.sql (id, topic, database, schema, table_name, operation, timestamp, position JSONB, before_data JSONB, after_data JSONB, metadata JSONB, indexes on topic/operation/timestamp, partitioned by timestamp)
-- [ ] T015 [P] Create JPA entity CdcMessageEntity in backend/src/main/java/infrastructure/persistence/entity/CdcMessageEntity.java (with Hibernate JSONB type handlers for position/before/after/metadata)
-- [ ] T016 [P] Create JPA converter for JSONB types in backend/src/main/java/infrastructure/persistence/converter/JsonbConverter.java
-- [ ] T017 [P] Implement JPA repository CdcMessageJpaRepository in backend/src/main/java/infrastructure/persistence/CdcMessageJpaRepository.java
-- [ ] T018 [P] Create domain to entity mapper in backend/src/main/java/infrastructure/persistence/mapper/CdcMessageMapper.java
-- [ ] T019 [P] Create configuration class KafkaConfig in backend/src/main/java/infrastructure/config/KafkaConfig.java (deserializer for Debezium CDC JSON format)
-- [ ] T020 [P] Create CDC message deserializer in backend/src/main/java/infrastructure/kafka/CdcMessageDeserializer.java (parse Debezium format)
-- [ ] T021 [P] Create configuration class WebMvcConfig for CORS in backend/src/main/java/infrastructure/config/WebMvcConfig.java
-- [ ] T022 [P] Implement error handling infrastructure GlobalExceptionHandler in backend/src/main/java/presentation/rest/GlobalExceptionHandler.java
-- [ ] T023 [P] Implement logging infrastructure with correlation IDs in backend/src/main/java/infrastructure/logging/CorrelationIdFilter.java
-- [ ] T024 Implement health check endpoint in backend/src/main/java/presentation/rest/HealthController.java (Kafka, PostgreSQL status)
-- [ ] T025 [P] Create Prometheus metrics configuration in backend/src/main/java/infrastructure/config/MetricsConfig.java
+- [X] T014 Implement PostgreSQL schema migration in backend/src/main/resources/db/migration/V1__create_cdc_messages_table.sql (id, topic, database, schema, table_name, operation, timestamp, position JSONB, before_data JSONB, after_data JSONB, metadata JSONB, indexes on topic/operation/timestamp, partitioned by timestamp)
+- [X] T015 [P] Create JPA entity CdcMessageEntity in backend/src/main/java/infrastructure/persistence/entity/CdcMessageEntity.java (with Hibernate JSONB type handlers for position/before/after/metadata)
+- [X] T016 [P] Create JPA converter for JSONB types in backend/src/main/java/infrastructure/persistence/converter/JsonbConverter.java
+- [X] T017 [P] Implement JPA repository CdcMessageJpaRepository in backend/src/main/java/infrastructure/persistence/CdcMessageJpaRepository.java
+- [X] T018 [P] Create domain to entity mapper in backend/src/main/java/infrastructure/persistence/mapper/CdcMessageMapper.java
+- [X] T019 [P] Create configuration class KafkaConfig in backend/src/main/java/infrastructure/config/KafkaConfig.java (deserializer for Debezium CDC JSON format)
+- [X] T020 [P] Create CDC message deserializer in backend/src/main/java/infrastructure/kafka/CdcMessageDeserializer.java (parse Debezium format)
+- [X] T021 [P] Create configuration class WebMvcConfig for CORS in backend/src/main/java/infrastructure/config/WebMvcConfig.java
+- [X] T022 [P] Implement error handling infrastructure GlobalExceptionHandler in backend/src/main/java/presentation/rest/GlobalExceptionHandler.java
+- [X] T023 [P] Implement logging infrastructure with correlation IDs in backend/src/main/java/infrastructure/logging/CorrelationIdFilter.java
+- [X] T024 Implement health check endpoint in backend/src/main/java/presentation/rest/HealthController.java (Kafka, PostgreSQL status)
+- [X] T025 [P] Create Prometheus metrics configuration in backend/src/main/java/infrastructure/config/MetricsConfig.java
 
 ### Frontend Foundation
 
-- [ ] T026 Configure shadcn/ui components.json in frontend/components.json
-- [ ] T027 [P] Create TypeScript types for CDC messages in frontend/src/types/cdc.ts (CdcMessage, TableInfo, Position, Metadata, Operation enum)
-- [ ] T028 [P] Create Zustand store for CDC message state in frontend/src/store/cdcMessageStore.ts (messages, filter by operation/table, connection status)
-- [ ] T029 [P] Create custom useSSE hook in frontend/src/hooks/useSSE.ts (with auto-reconnect, exponential backoff per research.md)
-- [ ] T030 [P] Add shadcn/ui Table component using shadcn MCP in frontend/src/components/ui/table.tsx
-- [ ] T031 [P] Add shadcn/ui Badge component using shadcn MCP in frontend/src/components/ui/badge.tsx
-- [ ] T032 [P] Add shadcn/ui Card component using shadcn MCP in frontend/src/components/ui/card.tsx
-- [ ] T033 [P] Add shadcn/ui Select component using shadcn MCP in frontend/src/components/ui/select.tsx
-- [ ] T034 [P] Add shadcn/ui Skeleton component using shadcn MCP in frontend/src/components/ui/skeleton.tsx
-- [ ] T035 [P] Install and configure React Virtuoso in frontend/package.json
+- [X] T026 Configure shadcn/ui components.json in frontend/components.json
+- [X] T027 [P] Create TypeScript types for CDC messages in frontend/src/types/cdc.ts (CdcMessage, TableInfo, Position, Metadata, Operation enum)
+- [X] T028 [P] Create Zustand store for CDC message state in frontend/src/store/cdcMessageStore.ts (messages, filter by operation/table, connection status)
+- [X] T029 [P] Create custom useSSE hook in frontend/src/hooks/useSSE.ts (with auto-reconnect, exponential backoff per research.md)
+- [X] T030 [P] Add shadcn/ui Table component using shadcn MCP in frontend/src/components/ui/table.tsx
+- [X] T031 [P] Add shadcn/ui Badge component using shadcn MCP in frontend/src/components/ui/badge.tsx
+- [X] T032 [P] Add shadcn/ui Card component using shadcn MCP in frontend/src/components/ui/card.tsx
+- [X] T033 [P] Add shadcn/ui Select component using shadcn MCP in frontend/src/components/ui/select.tsx
+- [X] T034 [P] Add shadcn/ui Skeleton component using shadcn MCP in frontend/src/components/ui/skeleton.tsx
+- [X] T035 [P] Install and configure React Virtuoso in frontend/package.json
 
 ### Testing Foundation
 
-- [ ] T036 Configure Testcontainers for integration tests in backend/src/test/java/infrastructure/testcontainers/TestContainersConfig.java
-- [ ] T037 [P] Configure Vitest for frontend unit tests in frontend/vitest.config.ts
-- [ ] T038 [P] Configure Playwright for E2E tests in frontend/playwright.config.ts (with test helpers for producing CDC messages)
-- [ ] T039 [P] Create Playwright test helpers in frontend/e2e/helpers/kafka-producer.ts (produce INSERT/UPDATE/DELETE CDC messages)
+- [X] T036 Configure Testcontainers for integration tests in backend/src/test/java/infrastructure/testcontainers/TestContainersConfig.java
+- [X] T037 [P] Configure Vitest for frontend unit tests in frontend/vitest.config.ts
+- [X] T038 [P] Configure Playwright for E2E tests in frontend/playwright.config.ts (with test helpers for producing CDC messages)
+- [X] T039 [P] Create Playwright test helpers in frontend/e2e/helpers/kafka-producer.ts (produce INSERT/UPDATE/DELETE CDC messages)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
