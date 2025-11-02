@@ -103,24 +103,24 @@ description: "Task list for Kafka Streaming UI implementation with Debezium CDC 
 
 ### Tests for User Story 1 (TDD - Write FIRST, Ensure FAIL)
 
-- [ ] T040 [P] [US1] Contract test for Debezium CDC message deserialization in backend/src/test/java/infrastructure/kafka/CdcMessageDeserializationTest.java (test INSERT/UPDATE/DELETE formats)
-- [ ] T041 [P] [US1] Contract test for PostgreSQL JSONB storage in backend/src/test/java/infrastructure/persistence/CdcMessagePersistenceContractTest.java
-- [ ] T042 [P] [US1] Integration test for Kafka CDC → PostgreSQL flow using Testcontainers in backend/src/test/java/integration/KafkaCdcToPostgresIntegrationTest.java
-- [ ] T043 [P] [US1] Integration test for SSE endpoint CDC message delivery in backend/src/test/java/integration/SseCdcMessageDeliveryTest.java
-- [ ] T044 [P] [US1] E2E test for real-time CDC message display with Playwright in frontend/e2e/real-time-cdc-messages.spec.ts (produce INSERT/UPDATE/DELETE, verify UI updates)
+- [X] T040 [P] [US1] Contract test for Debezium CDC message deserialization in backend/src/test/java/infrastructure/kafka/CdcMessageDeserializationTest.java (test INSERT/UPDATE/DELETE formats)
+- [X] T041 [P] [US1] Contract test for PostgreSQL JSONB storage in backend/src/test/java/infrastructure/persistence/CdcMessagePersistenceContractTest.java
+- [X] T042 [P] [US1] Integration test for Kafka CDC → PostgreSQL flow using Testcontainers in backend/src/test/java/integration/KafkaCdcToPostgresIntegrationTest.java
+- [X] T043 [P] [US1] Integration test for SSE endpoint CDC message delivery in backend/src/test/java/integration/SseCdcMessageDeliveryTest.java
+- [X] T044 [P] [US1] E2E test for real-time CDC message display with Playwright in frontend/e2e/real-time-cdc-messages.spec.ts (produce INSERT/UPDATE/DELETE, verify UI updates)
 
 ### Implementation for User Story 1
 
 #### Backend - Kafka Consumer
 
-- [ ] T045 [P] [US1] Implement CdcMessageConsumer in backend/src/main/java/infrastructure/kafka/CdcMessageConsumer.java (consume from Kafka, deserialize Debezium format)
-- [ ] T046 [US1] Implement ConsumeMessageUseCase in backend/src/main/java/application/usecase/ConsumeMessageUseCase.java (validate CDC message, extract operation/table info, store)
-- [ ] T047 [US1] Wire CdcMessageConsumer to ConsumeMessageUseCase in backend/src/main/java/infrastructure/kafka/CdcConsumerService.java
-- [ ] T048 [US1] Add error handling for CDC consumer in backend/src/main/java/infrastructure/kafka/CdcErrorHandler.java (dead-letter queue for malformed messages)
+- [X] T045 [P] [US1] Implement CdcMessageConsumer in backend/src/main/java/infrastructure/kafka/CdcMessageConsumer.java (consume from Kafka, deserialize Debezium format)
+- [X] T046 [US1] Implement ConsumeMessageUseCase in backend/src/main/java/application/usecase/ConsumeMessageUseCase.java (validate CDC message, extract operation/table info, store)
+- [X] T047 [US1] Wire CdcMessageConsumer to ConsumeMessageUseCase in backend/src/main/java/infrastructure/kafka/CdcConsumerService.java
+- [X] T048 [US1] Add error handling for CDC consumer in backend/src/main/java/infrastructure/kafka/CdcErrorHandler.java (dead-letter queue for malformed messages)
 
 #### Backend - SSE Implementation
 
-- [ ] T049 [P] [US1] Create SSE emitter registry in backend/src/main/java/infrastructure/sse/SseEmitterRegistry.java (manage multiple clients, track subscriptions)
+- [X] T049 [P] [US1] Create SSE emitter registry in backend/src/main/java/infrastructure/sse/SseEmitterRegistry.java (manage multiple clients, track subscriptions)
 - [ ] T050 [US1] Implement SSE controller endpoint GET /api/sse/cdc-messages in backend/src/main/java/presentation/rest/SseController.java
 - [ ] T051 [US1] Implement CDC message broadcasting service in backend/src/main/java/infrastructure/sse/CdcMessageBroadcaster.java
 - [ ] T052 [US1] Integrate CdcMessageBroadcaster with ConsumeMessageUseCase to push new CDC messages
