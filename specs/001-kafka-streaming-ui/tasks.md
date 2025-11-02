@@ -31,14 +31,14 @@ description: "Task list for Kafka Streaming UI implementation with Debezium CDC 
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create backend directory structure following Clean Architecture: backend/src/main/java/{domain,application,infrastructure,presentation}
-- [ ] T002 Initialize Spring Boot 3.x project with Maven in backend/pom.xml (dependencies: spring-boot-starter-web, spring-kafka, postgresql, actuator, jackson-databind)
-- [ ] T003 [P] Initialize Next.js 14+ project with TypeScript in frontend/ directory
-- [ ] T004 [P] Install shadcn/ui dependencies and configure Tailwind CSS in frontend/
-- [ ] T005 [P] Create Docker Compose file for local development (Kafka, Zookeeper, PostgreSQL) in docker-compose.yml
-- [ ] T006 [P] Configure backend application properties in backend/src/main/resources/application.yml (Kafka, PostgreSQL, SSE settings)
-- [ ] T007 [P] Configure frontend environment variables template in frontend/.env.example
-- [ ] T008 Create Kubernetes manifests directory structure in k8s/{deployments,services,configmaps,secrets}
+- [X] T001 Create backend directory structure following Clean Architecture: backend/src/main/java/{domain,application,infrastructure,presentation}
+- [X] T002 Initialize Spring Boot 3.x project with Maven in backend/pom.xml (dependencies: spring-boot-starter-web, spring-kafka, postgresql, actuator, jackson-databind)
+- [X] T003 [P] Initialize Next.js 14+ project with TypeScript in frontend/ directory
+- [X] T004 [P] Install shadcn/ui dependencies and configure Tailwind CSS in frontend/
+- [X] T005 [P] Create Docker Compose file for local development (Kafka, Zookeeper, PostgreSQL) in docker-compose.yml
+- [X] T006 [P] Configure backend application properties in backend/src/main/resources/application.yml (Kafka, PostgreSQL, SSE settings)
+- [X] T007 [P] Configure frontend environment variables template in frontend/.env.example
+- [X] T008 Create Kubernetes manifests directory structure in k8s/{deployments,services,configmaps,secrets}
 
 ---
 

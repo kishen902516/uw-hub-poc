@@ -8,7 +8,8 @@
       "WebFetch(domain:wiki.postgresql.org)",
       "WebSearch",
       "WebFetch(domain:medium.com)",
-      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)"
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
