@@ -121,22 +121,22 @@ description: "Task list for Kafka Streaming UI implementation with Debezium CDC 
 #### Backend - SSE Implementation
 
 - [X] T049 [P] [US1] Create SSE emitter registry in backend/src/main/java/infrastructure/sse/SseEmitterRegistry.java (manage multiple clients, track subscriptions)
-- [ ] T050 [US1] Implement SSE controller endpoint GET /api/sse/cdc-messages in backend/src/main/java/presentation/rest/SseController.java
-- [ ] T051 [US1] Implement CDC message broadcasting service in backend/src/main/java/infrastructure/sse/CdcMessageBroadcaster.java
-- [ ] T052 [US1] Integrate CdcMessageBroadcaster with ConsumeMessageUseCase to push new CDC messages
-- [ ] T053 [US1] Add SSE heartbeat mechanism (30s interval) in SseEmitterRegistry
+- [X] T050 [US1] Implement SSE controller endpoint GET /api/sse/cdc-messages in backend/src/main/java/presentation/rest/SseController.java
+- [X] T051 [US1] Implement CDC message broadcasting service in backend/src/main/java/infrastructure/sse/CdcMessageBroadcaster.java
+- [X] T052 [US1] Integrate CdcMessageBroadcaster with ConsumeMessageUseCase to push new CDC messages
+- [X] T053 [US1] Add SSE heartbeat mechanism (30s interval) in SseEmitterRegistry
 
 #### Frontend - Real-Time CDC Display
 
-- [ ] T054 [P] [US1] Create OperationBadge component in frontend/src/components/OperationBadge.tsx (color-coded: INSERT=green, UPDATE=blue, DELETE=red)
-- [ ] T055 [P] [US1] Create CdcMessageRow component in frontend/src/components/CdcMessageRow.tsx (display operation, table, timestamp, before/after preview)
-- [ ] T056 [P] [US1] Create CdcMessageStream component in frontend/src/components/CdcMessageStream.tsx (integrate useSSE, Virtuoso, Zustand)
-- [ ] T057 [P] [US1] Create ARIA live region component in frontend/src/components/AriaLiveRegion.tsx (accessibility for screen readers, announce CDC operations)
-- [ ] T058 [US1] Integrate CdcMessageStream with useSSE hook to connect to backend SSE endpoint
-- [ ] T059 [US1] Implement virtualized table rendering with React Virtuoso (10k CDC messages support)
-- [ ] T060 [US1] Add connection status indicator (connected/disconnected badge) in CdcMessageStream component
-- [ ] T061 [US1] Add auto-scroll behavior when new CDC messages arrive (stay at top if already at top)
-- [ ] T062 [US1] Create main page in frontend/src/app/page.tsx integrating CdcMessageStream component
+- [X] T054 [P] [US1] Create OperationBadge component in frontend/src/components/OperationBadge.tsx (color-coded: INSERT=green, UPDATE=blue, DELETE=red)
+- [X] T055 [P] [US1] Create CdcMessageRow component in frontend/src/components/CdcMessageRow.tsx (display operation, table, timestamp, before/after preview)
+- [X] T056 [P] [US1] Create CdcMessageStream component in frontend/src/components/CdcMessageStream.tsx (integrate useSSE, Virtuoso, Zustand)
+- [X] T057 [P] [US1] Create ARIA live region component in frontend/src/components/AriaLiveRegion.tsx (accessibility for screen readers, announce CDC operations)
+- [X] T058 [US1] Integrate CdcMessageStream with useSSE hook to connect to backend SSE endpoint
+- [X] T059 [US1] Implement virtualized table rendering with React Virtuoso (10k CDC messages support)
+- [X] T060 [US1] Add connection status indicator (connected/disconnected badge) in CdcMessageStream component
+- [X] T061 [US1] Add auto-scroll behavior when new CDC messages arrive (stay at top if already at top)
+- [X] T062 [US1] Create main page in frontend/src/app/page.tsx integrating CdcMessageStream component
 
 **Checkpoint**: User Story 1 complete - Real-time CDC monitoring functional with operation types and table info
 
