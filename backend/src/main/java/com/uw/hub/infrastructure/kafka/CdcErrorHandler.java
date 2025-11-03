@@ -86,7 +86,6 @@ public class CdcErrorHandler implements CommonErrorHandler {
      * @param consumer The Kafka consumer
      * @param container The message listener container
      */
-    @Override
     public void handleRecord(
             Exception thrownException,
             ConsumerRecord<?, ?> record,
@@ -136,7 +135,6 @@ public class CdcErrorHandler implements CommonErrorHandler {
      * @param container The message listener container
      * @param invokeListener Callback to retry processing
      */
-    @Override
     public void handleBatch(
             Exception thrownException,
             ConsumerRecords<?, ?> records,

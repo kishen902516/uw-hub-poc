@@ -52,6 +52,13 @@ public class Position {
         public Long getPrimaryLsn() {
             return lsnCommit != null ? lsnCommit : lsn;
         }
+
+        /**
+         * Get a value from additional properties
+         */
+        public Object get(String key) {
+            return additionalProperties != null ? additionalProperties.get(key) : null;
+        }
     }
 
     /**

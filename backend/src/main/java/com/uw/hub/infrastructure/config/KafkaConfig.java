@@ -102,4 +102,20 @@ public class KafkaConfig {
 
         return factory;
     }
+
+    /**
+     * CDC-specific Kafka listener container factory
+     */
+    @Bean(name = "cdcKafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, String> cdcKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+
+        factory.setConsumerFactory(consumerFactory());
+        factory.setConcurrency(concurrency);
+        factory.setBatchListener(false); // Single record processing for CDC
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+
+        return factory;
+    }
 }

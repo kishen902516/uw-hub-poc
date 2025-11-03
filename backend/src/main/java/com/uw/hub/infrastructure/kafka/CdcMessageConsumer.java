@@ -48,10 +48,10 @@ public class CdcMessageConsumer {
      * @param acknowledgment Manual acknowledgment (commit offset after successful processing)
      */
     @KafkaListener(
-        topics = "${kafka.topics.cdc-messages}",
+        topics = {"cdc.cdcdb.customers", "cdc.cdcdb.orders"},
         groupId = "${spring.kafka.consumer.group-id}",
         containerFactory = "cdcKafkaListenerContainerFactory",
-        concurrency = "${kafka.consumer.concurrency:3}"
+        concurrency = "${spring.kafka.listener.concurrency:3}"
     )
     public void consume(ConsumerRecord<String, String> consumerRecord, Acknowledgment acknowledgment) {
         String topic = consumerRecord.topic();

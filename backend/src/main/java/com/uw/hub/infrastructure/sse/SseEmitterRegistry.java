@@ -1,6 +1,7 @@
 package com.uw.hub.infrastructure.sse;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -56,22 +57,34 @@ public class SseEmitterRegistry {
     private final ScheduledExecutorService heartbeatScheduler = Executors.newSingleThreadScheduledExecutor();
 
     /**
-     * SSE emitter timeout: 1 hour (in milliseconds)
+     * SSE emitter timeout (configurable via application.yml)
      * After this time, connection is automatically closed if no data sent
      */
-    private static final long SSE_TIMEOUT = 60 * 60 * 1000L; // 1 hour
+    @Value("${sse.timeout:3600000}")
+    private long sseTimeout;
 
     /**
-     * Heartbeat interval: 30 seconds (in milliseconds)
+     * Heartbeat interval (configurable via application.yml)
      */
-    private static final long HEARTBEAT_INTERVAL_MS = 30_000L;
+    @Value("${sse.heartbeat-interval:30000}")
+    private long heartbeatInterval;
 
     /**
      * Constructor - starts heartbeat scheduler
      */
     public SseEmitterRegistry() {
+        // Heartbeat scheduler will be started after dependency injection
+    }
+
+    /**
+     * Initialize heartbeat scheduler after properties are injected
+     * Called by Spring after construction
+     */
+    @jakarta.annotation.PostConstruct
+    public void init() {
         startHeartbeatScheduler();
-        log.info("SseEmitterRegistry initialized with heartbeat interval: {}s", HEARTBEAT_INTERVAL_MS / 1000);
+        log.info("SseEmitterRegistry initialized with timeout: {}ms, heartbeat interval: {}ms",
+                sseTimeout, heartbeatInterval);
     }
 
     /**
@@ -86,27 +99,31 @@ public class SseEmitterRegistry {
      */
     public SseEmitter createEmitter() {
         String emitterId = UUID.randomUUID().toString();
-        SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
+        SseEmitter emitter = new SseEmitter(sseTimeout);
 
         // Register lifecycle callbacks
         emitter.onCompletion(() -> {
-            log.info("SSE emitter completed: emitterId={}", emitterId);
+            log.info("✓ SSE emitter completed normally: emitterId={}, remainingClients={}",
+                    emitterId, emitters.size() - 1);
             removeEmitter(emitterId);
         });
 
         emitter.onTimeout(() -> {
-            log.warn("SSE emitter timed out: emitterId={}", emitterId);
+            log.warn("⏱ SSE emitter timed out: emitterId={}, remainingClients={}",
+                    emitterId, emitters.size() - 1);
             removeEmitter(emitterId);
         });
 
         emitter.onError((exception) -> {
-            log.error("SSE emitter error: emitterId={}, error={}", emitterId, exception.getMessage());
+            log.error("✗ SSE emitter error: emitterId={}, error={}, remainingClients={}",
+                    emitterId, exception.getMessage(), emitters.size() - 1);
             removeEmitter(emitterId);
         });
 
         // Add to registry
         emitters.put(emitterId, emitter);
-        log.info("SSE emitter registered: emitterId={}, totalClients={}", emitterId, emitters.size());
+        log.info("➕ SSE emitter registered: emitterId={}, totalActiveClients={}",
+                emitterId, emitters.size());
 
         // Send welcome message
         sendWelcomeMessage(emitter, emitterId);
@@ -188,12 +205,12 @@ public class SseEmitterRegistry {
     private void startHeartbeatScheduler() {
         heartbeatScheduler.scheduleAtFixedRate(
                 this::sendHeartbeatToAllClients,
-                HEARTBEAT_INTERVAL_MS,
-                HEARTBEAT_INTERVAL_MS,
+                heartbeatInterval,
+                heartbeatInterval,
                 TimeUnit.MILLISECONDS
         );
 
-        log.info("Heartbeat scheduler started: interval={}s", HEARTBEAT_INTERVAL_MS / 1000);
+        log.info("Heartbeat scheduler started: interval={}s", heartbeatInterval / 1000);
     }
 
     /**
@@ -274,8 +291,8 @@ public class SseEmitterRegistry {
     public RegistryMetrics getMetrics() {
         return new RegistryMetrics(
                 emitters.size(),
-                HEARTBEAT_INTERVAL_MS,
-                SSE_TIMEOUT
+                heartbeatInterval,
+                sseTimeout
         );
     }
 

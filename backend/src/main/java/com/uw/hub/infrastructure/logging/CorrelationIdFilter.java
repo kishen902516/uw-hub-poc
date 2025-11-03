@@ -41,7 +41,11 @@ public class CorrelationIdFilter implements Filter {
             // Add to response headers
             httpResponse.setHeader(CORRELATION_ID_HEADER, correlationId);
 
-            log.debug("Processing request with correlation ID: {}", correlationId);
+            // Only log API requests, skip static resources and common browser requests
+            String requestUri = httpRequest.getRequestURI();
+            if (shouldLogRequest(requestUri)) {
+                log.debug("Processing request {} with correlation ID: {}", requestUri, correlationId);
+            }
 
             // Continue filter chain
             chain.doFilter(request, response);
@@ -50,6 +54,22 @@ public class CorrelationIdFilter implements Filter {
             // Always clear MDC to prevent memory leaks
             MDC.remove(CORRELATION_ID_MDC_KEY);
         }
+    }
+
+    /**
+     * Determine if a request should be logged to reduce noise
+     */
+    private boolean shouldLogRequest(String requestUri) {
+        // Skip logging for common static resources and health checks
+        return requestUri != null
+            && !requestUri.endsWith(".ico")
+            && !requestUri.endsWith(".png")
+            && !requestUri.endsWith(".jpg")
+            && !requestUri.endsWith(".svg")
+            && !requestUri.endsWith(".css")
+            && !requestUri.endsWith(".js")
+            && !requestUri.endsWith(".map")
+            && !requestUri.startsWith("/actuator/health");
     }
 
     /**

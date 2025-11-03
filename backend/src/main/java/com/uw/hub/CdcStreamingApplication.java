@@ -11,6 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class CdcStreamingApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CdcStreamingApplication.java, args);
+        SpringApplication.run(CdcStreamingApplication.class, args);
     }
 }

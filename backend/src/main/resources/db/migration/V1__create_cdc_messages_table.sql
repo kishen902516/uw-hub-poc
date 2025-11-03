@@ -4,7 +4,7 @@
 
 -- Create CDC messages table with declarative partitioning by timestamp (monthly)
 CREATE TABLE IF NOT EXISTS cdc_messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     topic VARCHAR(255) NOT NULL,
 
     -- Table info
@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS cdc_messages (
     ),
     CONSTRAINT valid_delete CHECK (
         operation != 'DELETE' OR (before_data IS NOT NULL AND after_data IS NULL)
-    )
+    ),
+    -- Primary key must include partition column
+    PRIMARY KEY (id, timestamp)
 ) PARTITION BY RANGE (timestamp);
 
 -- Create indexes for common query patterns

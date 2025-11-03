@@ -30,6 +30,18 @@ export const useSSE = ({
   const retryCountRef = useRef(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Use refs for callbacks to avoid recreating connect/disconnect on every render
+  const onMessageRef = useRef(onMessage);
+  const onErrorRef = useRef(onError);
+  const onStatusChangeRef = useRef(onStatusChange);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onErrorRef.current = onError;
+    onStatusChangeRef.current = onStatusChange;
+  }, [onMessage, onError, onStatusChange]);
+
   /**
    * Calculate exponential backoff delay
    * Formula: 500ms * 2^attempt, capped at maxRetryDelay
@@ -47,13 +59,13 @@ export const useSSE = ({
    */
   const connect = useCallback(() => {
     if (eventSourceRef.current) {
-      console.log("SSE connection already exists");
+      console.log("SSE connection already exists - skipping");
       return;
     }
 
     console.log(`Connecting to SSE: ${url}`);
     setStatus("connecting");
-    onStatusChange?.("connecting");
+    onStatusChangeRef.current?.("connecting");
 
     try {
       const eventSource = new EventSource(url);
@@ -62,19 +74,36 @@ export const useSSE = ({
       eventSource.addEventListener("open", () => {
         console.log("SSE connection opened");
         setStatus("connected");
-        onStatusChange?.("connected");
+        onStatusChangeRef.current?.("connected");
         retryCountRef.current = 0; // Reset retry counter on success
       });
 
-      // Message received
+      // Listen for "connected" event from backend
+      eventSource.addEventListener("connected", (event: MessageEvent) => {
+        console.log("SSE connected event received:", event.data);
+      });
+
+      // Listen for CDC messages (custom event name: "cdc-message")
+      eventSource.addEventListener("cdc-message", (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("SSE cdc-message received:", data);
+          onMessageRef.current(data);
+        } catch (err) {
+          console.error("Failed to parse SSE cdc-message:", err);
+          onErrorRef.current?.(event);
+        }
+      });
+
+      // Also listen for default "message" events (fallback)
       eventSource.addEventListener("message", (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
-          console.log("SSE message received:", data);
-          onMessage(data);
+          console.log("SSE default message received:", data);
+          onMessageRef.current(data);
         } catch (err) {
           console.error("Failed to parse SSE message:", err);
-          onError?.(event);
+          onErrorRef.current?.(event);
         }
       });
 
@@ -84,8 +113,8 @@ export const useSSE = ({
         eventSource.close();
         eventSourceRef.current = null;
         setStatus("error");
-        onStatusChange?.("error");
-        onError?.(event);
+        onStatusChangeRef.current?.("error");
+        onErrorRef.current?.(event);
 
         // Auto-reconnect with exponential backoff
         if (retryCountRef.current < retryCount) {
@@ -101,7 +130,7 @@ export const useSSE = ({
         } else {
           console.error("Max retry attempts reached");
           setStatus("disconnected");
-          onStatusChange?.("disconnected");
+          onStatusChangeRef.current?.("disconnected");
         }
       });
 
@@ -109,9 +138,9 @@ export const useSSE = ({
     } catch (err) {
       console.error("Failed to create EventSource:", err);
       setStatus("error");
-      onStatusChange?.("error");
+      onStatusChangeRef.current?.("error");
     }
-  }, [url, retryCount, onMessage, onError, onStatusChange, calculateBackoffDelay]);
+  }, [url, retryCount, calculateBackoffDelay]);
 
   /**
    * Disconnect from SSE endpoint
@@ -127,8 +156,8 @@ export const useSSE = ({
       retryTimeoutRef.current = null;
     }
     setStatus("disconnected");
-    onStatusChange?.("disconnected");
-  }, [onStatusChange]);
+    onStatusChangeRef.current?.("disconnected");
+  }, []);
 
   /**
    * Reconnect to SSE endpoint
@@ -140,15 +169,22 @@ export const useSSE = ({
     connect();
   }, [connect, disconnect]);
 
-  // Auto-connect on mount
+  // Auto-connect on mount and when URL changes
   useEffect(() => {
-    connect();
+    console.log("useSSE: useEffect triggered (url changed or mount)");
+
+    // Only connect if not already connected
+    if (!eventSourceRef.current) {
+      connect();
+    }
 
     // Cleanup on unmount
     return () => {
+      console.log("useSSE: Cleaning up connection on unmount");
       disconnect();
     };
-  }, [connect, disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]); // Only reconnect when URL changes
 
   return { status, reconnect, disconnect };
 };

@@ -17,7 +17,7 @@ import { CdcMessage } from '@/types/cdc';
  * Main component for displaying real-time CDC messages from Kafka via SSE.
  *
  * Features:
- * - Real-time SSE connection to backend (/api/sse/cdc-messages)
+ * - Real-time SSE connection to backend (direct connection, not proxied)
  * - Virtualized table rendering with React Virtuoso (handles 10k+ messages)
  * - Connection status indicator (connecting/connected/disconnected/error)
  * - Auto-scroll behavior (stays at top when new messages arrive)
@@ -29,6 +29,12 @@ import { CdcMessage } from '@/types/cdc';
  * - Uses Zustand store for message state and connection status
  * - Messages are stored in-memory (last 10k messages)
  * - Optimized with selectors to prevent unnecessary re-renders
+ *
+ * SSE Connection:
+ * - Connects directly to backend (Next.js rewrites don't support SSE streaming)
+ * - Uses NEXT_PUBLIC_API_URL from environment variables
+ * - Falls back to http://localhost:8081 in development
+ * - CORS enabled on backend for cross-origin requests
  *
  * Accessibility:
  * - WCAG 2.1 AA compliant
@@ -56,8 +62,13 @@ export function CdcMessageStream() {
   const announcementText = useCdcMessageStore((state) => state.announcementText);
 
   // Connect to SSE endpoint on mount
+  // Use direct backend URL for SSE (Next.js rewrites don't support streaming)
+  const sseUrl = process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api/sse/cdc-messages`
+    : 'http://localhost:8081/api/sse/cdc-messages';
+
   const { status, reconnect } = useSSE({
-    url: '/api/sse/cdc-messages',
+    url: sseUrl,
     onMessage: (data) => {
       try {
         // Parse SSE event data

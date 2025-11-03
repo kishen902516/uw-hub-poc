@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -87,6 +89,35 @@ public class GlobalExceptionHandler {
 
         log.warn("Illegal state: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * Handle missing resource exceptions (e.g., favicon.ico, static files)
+     * Returns 404 without trying to serialize to JSON, avoiding media type issues
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFoundException(
+        NoResourceFoundException ex,
+        WebRequest request
+    ) {
+        // Just return 404 without body to avoid media type negotiation issues
+        // Don't log static resource 404s as they're expected for a REST API backend
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * Handle media type not acceptable exceptions (e.g., browser requesting HTML from JSON endpoint)
+     * Returns 406 without body to avoid cascading errors
+     */
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<Void> handleHttpMediaTypeNotAcceptableException(
+        HttpMediaTypeNotAcceptableException ex,
+        WebRequest request
+    ) {
+        // Return 406 without body to avoid cascading media type errors
+        // This typically happens when browsers request HTML from JSON-only endpoints
+        log.debug("Media type not acceptable for request: {}", request.getDescription(false));
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
     /**
